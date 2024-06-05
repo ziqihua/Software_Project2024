@@ -1,12 +1,18 @@
 var mongoose = require('mongoose');
+require('dotenv').config({ path: '../.env' });
+
 mongoose.set('useNewUrlParser', true);
 mongoose.set('useFindAndModify', false);
 mongoose.set('useCreateIndex', true);
 mongoose.set('useUnifiedTopology', true);
 
-// the host:port must match the location where you are running MongoDB
-// the "myDatabase" part can be anything you like
-mongoose.connect('mongodb://127.0.0.1:27017/myDatabase');
+
+var connection_string = process.env.MONGODB_URI;
+if (!connection_string) {
+	throw new Error('MONGODB_URI is not defined in the environment variables.');
+}
+console.log("connection_string: ", connection_string)
+mongoose.connect(connection_string);
 
 var Schema = mongoose.Schema;
 
@@ -15,7 +21,7 @@ var donationSchema = new Schema({
 	fund: String,
 	date: Date,
 	amount: Number
-    });
+});
 
 var fundSchema = new Schema({
 	name: String,
@@ -23,7 +29,7 @@ var fundSchema = new Schema({
 	target: {type: Number, default: 0},
 	org: String,
 	donations: [donationSchema]
-    });
+});
 
 var organizationSchema = new Schema({
 	login: {type: String, required: true, unique: true},
@@ -31,7 +37,7 @@ var organizationSchema = new Schema({
 	name: String,
 	description: String,
 	funds: [fundSchema]
-    });
+});
 
 var contributorSchema = new Schema({
 	login: {type: String, required: true, unique: true},
@@ -44,7 +50,7 @@ var contributorSchema = new Schema({
 	creditCardExpiryYear: {type: Number, default: 0},
 	creditCardPostCode: String,
 	donations: [donationSchema]
-    });
+});
 
 
 const donationModel = mongoose.model('Donation', donationSchema);
@@ -53,7 +59,7 @@ const organizationModel = mongoose.model('Organization', organizationSchema);
 const contributorModel = mongoose.model('Contributor', contributorSchema);
 
 module.exports = {
-    Donation : donationModel,
-    Fund : fundModel,
-    Organization: organizationModel,
-    Contributor: contributorModel }
+	Donation : donationModel,
+	Fund : fundModel,
+	Organization: organizationModel,
+	Contributor: contributorModel }

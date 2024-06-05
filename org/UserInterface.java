@@ -87,7 +87,16 @@ public class UserInterface {
 	
 	
 	public static void main(String[] args) {
-		
+
+		if (args.length == 0) {
+			System.out.println("No Arguments (login, password) passed into UserInterface main");
+			return;
+		}
+		if (args.length != 2) {
+			System.out.println("Incorrect # of arguments passed into UserInterface main");
+			return;
+		}
+
 		DataManager ds = new DataManager(new WebClient("localhost", 3001));
 		
 		String login = args[0];
