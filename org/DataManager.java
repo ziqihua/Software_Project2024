@@ -9,6 +9,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
+
 public class DataManager {
 
 	private final WebClient client;
@@ -32,50 +33,47 @@ public class DataManager {
 
 			JSONParser parser = new JSONParser();
 			JSONObject json = (JSONObject) parser.parse(response);
-			String status = (String)json.get("status");
-
+			String status = (String) json.get("status");
 
 			if (status.equals("success")) {
-				JSONObject data = (JSONObject)json.get("data");
-				String fundId = (String)data.get("_id");
-				String name = (String)data.get("name");
-				String description = (String)data.get("descrption");
-				Organization org = new Organization(fundId, name, description);
+				JSONObject data = (JSONObject) json.get("data");
+				String orgId = (String) data.get("_id");
+				String name = (String) data.get("name");
+				String description = (String) data.get("description");
+				Organization org = new Organization(orgId, name, description);
 
-				JSONArray funds = (JSONArray)data.get("funds");
-				Iterator it = funds.iterator();
-				while(it.hasNext()){
-					JSONObject fund = (JSONObject) it.next(); 
-					fundId = (String)fund.get("_id");
-					name = (String)fund.get("name");
-					description = (String)fund.get("description");
-					long target = (Long)fund.get("target");
+				JSONArray funds = (JSONArray) data.get("funds");
+				Iterator<?> it = funds.iterator();
+				while (it.hasNext()) {
+					JSONObject fund = (JSONObject) it.next();
+					String fundId = (String) fund.get("_id");
+					String fundName = (String) fund.get("name");
+					String fundDescription = (String) fund.get("description");
+					long target = (Long) fund.get("target");
 
-					Fund newFund = new Fund(fundId, name, description, target);
+					Fund newFund = new Fund(fundId, fundName, fundDescription, target);
 
-					JSONArray donations = (JSONArray)fund.get("donations");
+					JSONArray donations = (JSONArray) fund.get("donations");
 					List<Donation> donationList = new LinkedList<>();
-					Iterator it2 = donations.iterator();
-					while(it2.hasNext()){
+					Iterator<?> it2 = donations.iterator();
+					while (it2.hasNext()) {
 						JSONObject donation = (JSONObject) it2.next();
-						String contributorId = (String)donation.get("contributor");
+						String contributorId = (String) donation.get("contributor");
 						String contributorName = this.getContributorName(contributorId);
-						long amount = (Long)donation.get("amount");
-						String date = (String)donation.get("date");
+						long amount = (Long) donation.get("amount");
+						String date = (String) donation.get("date");
 						donationList.add(new Donation(fundId, contributorName, amount, date));
 					}
 
 					newFund.setDonations(donationList);
-
 					org.addFund(newFund);
-
 				}
 
 				return org;
+			} else {
+				return null;
 			}
-			else return null;
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
 		}
@@ -87,29 +85,34 @@ public class DataManager {
 	 * @return the name of the contributor on success; null if no contributor is found
 	 */
 	public String getContributorName(String id) {
-
 		try {
-
 			Map<String, Object> map = new HashMap<>();
 			map.put("_id", id);
-			String response = client.makeRequest("/findContributrNameById", map);
+			String response = client.makeRequest("/findContributorNameById", map);
+
+			// Log the response
+			//System.out.println("Querying /findContributorNameById with ID: " + id);
+			//System.out.println("Response from /findContributorNameById: " + response);
 
 			JSONParser parser = new JSONParser();
 			JSONObject json = (JSONObject) parser.parse(response);
-			String status = (String)json.get("status");
+			String status = (String) json.get("status");
 
 			if (status.equals("success")) {
-				String name = (String)json.get("data");
+				JSONObject data = (JSONObject) json.get("data");
+				String name = (String) data.get("name");
 				return name;
+			} else {
+				// Return a default or error message when contributor is not found
+				return null;
 			}
-			else return null;
-
-
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
+			e.printStackTrace();
 			return null;
-		}	
+		}
 	}
+
+
 
 	/**
 	 * This method creates a new fund in the database using the /createFund endpoint in the API
@@ -143,6 +146,4 @@ public class DataManager {
 			return null;
 		}	
 	}
-
-
 }

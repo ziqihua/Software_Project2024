@@ -12,35 +12,43 @@ public class UserInterface {
 		this.dataManager = dataManager;
 		this.org = org;
 	}
-	
+
 	public void start() {
-				
 		while (true) {
 			System.out.println("\n\n");
 			if (org.getFunds().size() > 0) {
 				System.out.println("There are " + org.getFunds().size() + " funds in this organization:");
-			
+
 				int count = 1;
 				for (Fund f : org.getFunds()) {
-					
 					System.out.println(count + ": " + f.getName());
-					
 					count++;
 				}
 				System.out.println("Enter the fund number to see more information.");
 			}
 			System.out.println("Enter 0 to create a new fund");
-			int option = in.nextInt();
-			in.nextLine();
-			if (option == 0) {
-				createFund(); 
+			String input = in.nextLine();
+
+			if (input.equals("0")) {
+				createFund();
+			} else if (input.toLowerCase().equals("q") || input.toLowerCase().equals("quit")) {
+				System.out.println("Good bye!");
+				break;
+			} else {
+				try {
+					int option = Integer.parseInt(input);
+					if (option > 0 && option <= org.getFunds().size()) {
+						displayFund(option);
+					} else {
+						System.out.println("Invalid input. Please enter a valid fund number or 0 to create a new fund.");
+					}
+				} catch (NumberFormatException e) {
+					System.out.println("Invalid input. Please enter a valid fund number or 0 to create a new fund.");
+				}
 			}
-			else {
-				displayFund(option);
-			}
-		}			
-			
+		}
 	}
+
 	
 	public void createFund() {
 		
@@ -59,31 +67,33 @@ public class UserInterface {
 
 		
 	}
-	
-	
+
+
 	public void displayFund(int fundNumber) {
-		
+
 		Fund fund = org.getFunds().get(fundNumber - 1);
-		
+
 		System.out.println("\n\n");
 		System.out.println("Here is information about this fund:");
 		System.out.println("Name: " + fund.getName());
 		System.out.println("Description: " + fund.getDescription());
 		System.out.println("Target: $" + fund.getTarget());
-		
+
 		List<Donation> donations = fund.getDonations();
 		System.out.println("Number of donations: " + donations.size());
 		for (Donation donation : donations) {
 			System.out.println("* " + donation.getContributorName() + ": $" + donation.getAmount() + " on " + donation.getDate());
 		}
-	
-		
+
+		long totalDonationAmount = donations.stream().mapToLong(Donation::getAmount).sum();
+		double percentageAchieved = (double) totalDonationAmount / fund.getTarget() * 100;
+
+		System.out.println("Total donation amount: $" + totalDonationAmount + " (" + String.format("%.2f", percentageAchieved) + "% of target)");
+
 		System.out.println("Press the Enter key to go back to the listing of funds");
 		in.nextLine();
-		
-		
-		
 	}
+
 	
 	
 	public static void main(String[] args) {
