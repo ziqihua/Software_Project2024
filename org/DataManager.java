@@ -60,6 +60,11 @@ public class DataManager {
 						JSONObject donation = (JSONObject) it2.next();
 						String contributorId = (String) donation.get("contributor");
 						String contributorName = this.getContributorName(contributorId);
+
+//						System.out.println(fundName);
+//						System.out.println(contributorId);
+//						System.out.println(contributorName + "\n");
+
 						long amount = (Long) donation.get("amount");
 						String date = (String) donation.get("date");
 						donationList.add(new Donation(fundId, contributorName, amount, date));
@@ -87,20 +92,15 @@ public class DataManager {
 	public String getContributorName(String id) {
 		try {
 			Map<String, Object> map = new HashMap<>();
-			map.put("_id", id);
+			map.put("id", id);
 			String response = client.makeRequest("/findContributorNameById", map);
-
-			// Log the response
-			//System.out.println("Querying /findContributorNameById with ID: " + id);
-			//System.out.println("Response from /findContributorNameById: " + response);
 
 			JSONParser parser = new JSONParser();
 			JSONObject json = (JSONObject) parser.parse(response);
 			String status = (String) json.get("status");
 
 			if (status.equals("success")) {
-				JSONObject data = (JSONObject) json.get("data");
-				String name = (String) data.get("name");
+				String name = (String) json.get("data");
 				return name;
 			} else {
 				// Return a default or error message when contributor is not found

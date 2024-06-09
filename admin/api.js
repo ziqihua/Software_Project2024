@@ -135,6 +135,8 @@ Return the name of the contributor with ID specified as req.query.id
 app.use('/findContributorNameById', (req, res) => {
     
 	var query = { "_id" : req.query.id };
+	console.log("in /findContributorNameById. req.query: ", req.query)
+	console.log("in /findContributorNameById. req.query.id: ", req.query.id)
 	
 	Contributor.findOne(query, (err, result) => {
 		if (err) {
