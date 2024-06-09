@@ -119,7 +119,6 @@ public class DataManager {
 	 * @return a new Fund object if successful; null if unsuccessful
 	 */
 	public Fund createFund(String orgId, String name, String description, long target) {
-
 		try {
 
 			Map<String, Object> map = new HashMap<>();

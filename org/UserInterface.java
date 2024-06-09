@@ -13,6 +13,11 @@ public class UserInterface {
 		this.org = org;
 	}
 
+	// Method to set the scanner for testing purposes
+	public void setScanner(Scanner scanner) {
+		this.in = scanner;
+	}
+
 	public void start() {
 		while (true) {
 			System.out.println("\n\n");
@@ -51,21 +56,55 @@ public class UserInterface {
 
 	
 	public void createFund() {
-		
-		System.out.print("Enter the fund name: ");
-		String name = in.nextLine().trim();
-		
-		System.out.print("Enter the fund description: ");
-		String description = in.nextLine().trim();
-		
-		System.out.print("Enter the fund target: ");
-		long target = in.nextInt();
-		in.nextLine();
+
+		String name = "";
+		boolean nameSuccess = false;
+		while (!nameSuccess) {
+			System.out.println("Enter the fund name: ");
+			name = in.nextLine().trim();
+			if (name.isBlank()) {
+				System.out.println("Fund names may not be blank.");
+				continue;
+			} else {
+				nameSuccess = true;
+			}
+		}
+
+		String description = "";
+		boolean descriptionSuccess = false;
+		while (!descriptionSuccess) {
+			System.out.println("Enter the fund description: ");
+			description = in.nextLine().trim();
+			if (description.isBlank()) {
+				System.out.println("Fund descriptions may not be blank.");
+				continue;
+			} else {
+				descriptionSuccess = true;
+			}
+		}
+
+
+
+		long target = 0;
+		boolean targetSuccess = false;
+		while (!targetSuccess) {
+			System.out.println("Enter the fund target:");
+			try {
+				target = Long.parseLong(in.nextLine());
+				if (target < 0) {
+					System.out.println("Invalid fund target. Please enter a positive integer.");
+				} else {
+					targetSuccess = true;
+					System.out.println("Fund target set to: " + target);
+				}
+			} catch (NumberFormatException e) {
+				System.out.println("Invalid input. Please enter a numeric value.");
+			}
+		}
+
 
 		Fund fund = dataManager.createFund(org.getId(), name, description, target);
 		org.getFunds().add(fund);
-
-		
 	}
 
 
