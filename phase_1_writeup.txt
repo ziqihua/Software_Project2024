@@ -1,0 +1,172 @@
+Writeup.1:
+We chose tasks 1.8-1.10 as our additional tasks.
+
+Writeup.2: 
+Changes I made to the DataManager Class:
+
+Constructor:
+
+Initial Version: No change in the constructor.
+Final Version: No change in the constructor.
+
+attemptLogin Method:
+
+Initial Version:
+Typo in descrption (should be description): String description = (String) data.get("descrption");
+Typo in iterating over funds: Iterator it = funds.iterator();
+Method returned ‘null’ without specifying the type of error.  
+
+Final Version:
+Typo corrected: String description = (String) data.get("description");
+Typo corrected: Iterator<?> it = funds.iterator();
+Throw an ‘IllegalStateException’, provide clear error handling.
+
+getContributorName Method:
+
+Initial Version:
+Typo in endpoint URL: String response = client.makeRequest("/findContributrNameById", map);
+Incorrectly parsing the name field directly from json.get("data"): String name = (String)json.get("data");
+“_id” map value incorrect, leading to “status not found” on all inputs
+
+Final Version:
+Typo corrected: String response = client.makeRequest("/findContributorNameById", map);
+Changed to correctly parse the name field from the nested data object: JSONObject data = (JSONObject) json.get("data");
+“_id” -> “id”
+
+createFund Method:
+
+Initial Version: No change in the createFund method.
+Final Version: No change in the createFund method.
+
+Overall, the changes made in the final version include fixing typos, correcting JSON parsing to extract nested fields correctly, and ensuring consistent use of generics.
+
+Changes I made to the DataManager_createFund_Test class:
+
+Additional Test Methods:
+
+Initial Version: Only contains the testSuccessfulCreation method.
+Final Version: Contains two additional test methods: testFailedCreation and testExceptionHandling.
+
+Test Cases:
+
+testFailedCreation: Tests the scenario where the fund creation fails, asserting that null is returned.
+testExceptionHandling: Tests the scenario where an exception is thrown during the fund creation process, asserting that null is returned.
+
+Test Coverage:
+
+Initial Version: Only tests the successful creation of a fund.
+Final Version: Provides more comprehensive testing by covering failure scenarios and exception handling.
+
+Code Reuse:
+
+Initial Version: No reuse of test cases or assertions.
+Final Version: Reuses the setup code and assertions for successful fund creation in the new test cases, enhancing code reuse and reducing duplication.
+
+Overall, the final version of the test class provides more comprehensive testing and better code reuse compared to the initial version.
+
+Changes I made in the DataManager_attemptLogin_Test class:
+
+Additional Test Methods:
+
+Initial Version: No DataManager_attemptLogin_Test class was initially present.
+Final Version: Contains multiple test methods for different scenarios, including successful login, failed login, exception handling, and successful login with funds and donations.
+
+Test Cases:
+
+testFailedLogin: Tests the scenario where the login attempt fails, asserting that null is returned.
+testExceptionHandling: Tests the scenario where an exception is thrown during the login attempt, asserting that null is returned. Uses assertThrows to check the method throws at the IllegalStateException when error occurs. 
+testSuccessfulLoginWithFunds: Tests the scenario where a successful login results in an organization with funds but no donations.
+testSuccessfulLoginWithFundsAndDonations: Tests the scenario where a successful login results in an organization with funds and donations, including the retrieval of contributor names.
+
+Test Coverage:
+
+Provides comprehensive testing of the DataManager.attemptLogin method under different scenarios, ensuring that it behaves correctly in various situations.
+
+Code Reuse:
+
+Reuses the setup code and assertions for successful and failed login scenarios, enhancing code reuse and reducing duplication.
+
+Overall, the final version of the test class provides more comprehensive testing and better code reuse compared to the initial version.
+
+Changes I made in the DataManager_getContributorName_Test class:
+
+Additional Test Methods:
+
+Initial Version: No DataManager_getContributorName_Test class was initially present.
+Final Version: Contains multiple test methods for different scenarios, including successful retrieval of contributor name, failure to retrieve contributor name, retrieval with invalid response, and retrieval with an exception.
+
+Test Cases:
+
+testGetContributorNameFailure: Tests the scenario where the attempt to retrieve the contributor name fails, asserting that null is returned.
+testGetContributorNameWithInvalidResponse: Tests the scenario where the response from the API is invalid, asserting that null is returned.
+testGetContributorNameWithException: Tests the scenario where an exception is thrown during the retrieval of the contributor name, asserting that null is returned.
+
+Test Coverage:
+
+Provides comprehensive testing of the DataManager.getContributorName method under different scenarios, ensuring that it behaves correctly in various situations.
+
+Code Reuse:
+
+Reuses the setup code and assertions for different scenarios, enhancing code reuse and reducing duplication.
+
+Overall, the final version of the test class provides more comprehensive testing and better code reuse compared to the initial version.
+
+Changes I made in the UserInterface class:
+
+Added Input Validation:
+
+Initial Version: Uses in.nextInt() directly to read the user's input, which can cause issues if the user enters a non-integer value.
+Final Version: Uses in.nextLine() to read the user's input as a string, then validates and processes it accordingly, handling cases where the input is not a valid integer to implement Task 1.3.
+
+Improved User Experience:
+
+Final Version: Allows the user to enter 'q' or 'quit' to exit the program gracefully, improving the user experience compared to abruptly closing the program. This change is also to implement task 1.3.
+
+Display the achieved percentage for each fund by comparing the current amount of funds received with the target fund. This change is to implement task 1.4.
+
+createFund input error handling:
+For each input step, there is a while loop to prompt the user to keep inputting values until a valid one is given. For name and description, a valid input is one that is not blank, checked using the Java built-in method String.isBlank(). For target, we have
+ target = Long.parseLong(in.nextLine());
+In a try-catch block instead of using in.nextInt,, and the user is also prompted to re-enter for negative numbers. 
+
+displayFund date formatting: 
+Introduced a new helper method formatDateString for the logic of date displaying. Use the SimpleDateFormat class to convert default date format into more readable ones. Updated the loop which prints donation details using formatted date string. 
+
+
+Refactored Main Method:
+
+Final Version: Added input argument validation in the main method to ensure that the correct number of arguments is provided. If no arguments are provided, it prints a message indicating that no arguments were passed. Added a try-catch block to handle IllegalStateException thrown by attemptLogin method, display proper error message if the exception gets caught.
+
+Overall Code Cleanup:
+
+Final Version: Removed unnecessary import statements and reorganized the code for better readability and maintainability.
+
+Overall, the final version of the UserInterface class improves the user experience by adding input validation and handling edge cases more gracefully.
+
+Writeup.3: 
+A description of any bugs that I found and fixed in Task 1.2:
+
+Bug: In the attemptLogin method, the description field is incorrectly retrieved as description from the JSON response, causing a NullPointerException when trying to access it.
+
+Fix: Corrected the typo in the field name to description when retrieving it from the JSON response.
+
+Bug: In the getContributorName method, the endpoint URL is incorrectly specified as /findContributrNameById instead of /findContributorNameById, resulting in a 404 error response.
+
+Fix: Corrected the endpoint URL to /findContributorNameById for querying the contributor name based on the ID.
+
+Writeup.4: 
+A description of any Misc bugs that I found and fixed
+
+Bug: In UserInterface.main(), the program initially crashed if not provided enough arguments. Fix: Prints to console not enough arguments entered and exits gracefully
+
+Writeup.5: 
+Instructions on how to start each app
+
+
+
+Writeup.6:
+Group Members’ Contributions:
+
+Grace: task 1.1 ~ 1.4
+Spencer: Task 1.8, Fixed bug in task 1.2 leading to “status not found” on client.makeRequest, set up shared DB instance so people set up locally and we have it for future tasks, graceful prompting for more args in UserInterface.main  
+Rae: Task 1.9 & 1.10. 
