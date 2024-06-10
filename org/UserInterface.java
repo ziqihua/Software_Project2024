@@ -1,5 +1,7 @@
 import java.util.List;
 import java.util.Scanner;
+import java.util.Date;
+import java.text.SimpleDateFormat;
 
 public class UserInterface {
 	
@@ -120,8 +122,11 @@ public class UserInterface {
 
 		List<Donation> donations = fund.getDonations();
 		System.out.println("Number of donations: " + donations.size());
+		SimpleDateFormat dateFormat = new SimpleDateFormat("MMMM dd, yyyy");
+
 		for (Donation donation : donations) {
-			System.out.println("* " + donation.getContributorName() + ": $" + donation.getAmount() + " on " + donation.getDate());
+			String formattedDate = formatDateString(donation.getDate(), dateFormat);
+			System.out.println("* " + donation.getContributorName() + ": $" + donation.getAmount() + " on " + formattedDate);
 		}
 
 		long totalDonationAmount = donations.stream().mapToLong(Donation::getAmount).sum();
@@ -131,6 +136,17 @@ public class UserInterface {
 
 		System.out.println("Press the Enter key to go back to the listing of funds");
 		in.nextLine();
+	}
+
+	private String formatDateString(String dateStr, SimpleDateFormat formatter) {
+		try {
+			SimpleDateFormat originalFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX");
+			Date date = originalFormat.parse(dateStr);
+			return formatter.format(date);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return dateStr;
+		}
 	}
 
 	
@@ -150,20 +166,19 @@ public class UserInterface {
 		
 		String login = args[0];
 		String password = args[1];
-		
-		
-		Organization org = ds.attemptLogin(login, password);
-		
-		if (org == null) {
-			System.out.println("Login failed.");
-		}
-		else {
 
-			UserInterface ui = new UserInterface(ds, org);
-		
-			ui.start();
-		
+
+		try {
+			Organization org = ds.attemptLogin(login, password);
+
+			if (org == null) {
+				System.out.println("Login failed.");
+			} else {
+				UserInterface ui = new UserInterface(ds, org);
+				ui.start();
+			}
+		} catch (IllegalStateException e) {
+			System.out.println("Error in communicating with server");
 		}
 	}
-
 }

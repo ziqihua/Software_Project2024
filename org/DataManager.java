@@ -73,14 +73,12 @@ public class DataManager {
 					newFund.setDonations(donationList);
 					org.addFund(newFund);
 				}
-
 				return org;
 			} else {
 				return null;
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
+			throw new IllegalStateException("Error in communicating with server", e);
 		}
 	}
 
