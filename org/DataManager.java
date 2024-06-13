@@ -18,6 +18,8 @@ public class DataManager {
 		this.client = client;
 	}
 
+	private Map<String, String> loginContributorCache = new HashMap<String, String>();
+
 	/**
 	 * Attempt to log the user into an Organization account using the login and password.
 	 * This method uses the /findOrgByLoginAndPassword endpoint in the API
@@ -88,6 +90,11 @@ public class DataManager {
 	 * @return the name of the contributor on success; null if no contributor is found
 	 */
 	public String getContributorName(String id) {
+		// Task 2.1 Check the cache for the contributor name
+		if (loginContributorCache.containsKey(id)) {
+			return loginContributorCache.get(id);
+		}
+		// Contributor not found. Make a request, add it to the cache, and return it
 		try {
 			Map<String, Object> map = new HashMap<>();
 			map.put("id", id);
@@ -99,6 +106,7 @@ public class DataManager {
 
 			if (status.equals("success")) {
 				String name = (String) json.get("data");
+				loginContributorCache.put(id, name);
 				return name;
 			} else {
 				// Return a default or error message when contributor is not found
@@ -143,4 +151,5 @@ public class DataManager {
 			return null;
 		}	
 	}
+
 }
