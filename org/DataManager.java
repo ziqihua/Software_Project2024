@@ -13,12 +13,14 @@ import org.json.simple.parser.JSONParser;
 public class DataManager {
 
 	private final WebClient client;
+	public Map<String, String> loginContributorCache;
 
 	public DataManager(WebClient client) {
 		this.client = client;
+		this.loginContributorCache = new HashMap<>();
 	}
 
-	private Map<String, String> loginContributorCache = new HashMap<String, String>();
+
 
 	/**
 	 * Attempt to log the user into an Organization account using the login and password.

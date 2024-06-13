@@ -1,5 +1,6 @@
 import static org.junit.Assert.*;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.Test;
@@ -24,6 +25,9 @@ public class DataManager_getContributorName_Test {
 
         assertNotNull(name);
         assertEquals("Test Contributor", name);
+
+        // Check contributor is successfully added to the cache
+        assertEquals(dm.loginContributorCache.get("contrib123"), "Test Contributor");
     }
 
     @Test
@@ -78,5 +82,24 @@ public class DataManager_getContributorName_Test {
         String name = dm.getContributorName("contrib123");
 
         assertNull(name);
+    }
+
+    @Test
+    public void testGetContributorNameRepeatName() {
+        DataManager dm = new DataManager(new WebClient("localhost", 3001) {
+            @Override
+            public String makeRequest(String resource, Map<String, Object> queryParams) {
+                throw new RuntimeException("Request Made, but should have used Cache instead");
+            }
+        });
+
+        Map<String, String> loginContributorCache = new HashMap<String, String>();
+        loginContributorCache.put("contrib123", "Test Contributor");
+        dm.loginContributorCache = loginContributorCache;
+
+        String name = dm.getContributorName("contrib123");
+
+        assertNotNull(name);
+        assertEquals("Test Contributor", name);
     }
 }
