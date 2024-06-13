@@ -105,7 +105,8 @@ public class DataManager {
 			String status = (String) json.get("status");
 
 			if (status.equals("success")) {
-				String name = (String) json.get("data");
+				JSONObject dataObject = (JSONObject) json.get("data");
+				String name = (String) dataObject.get("name");
 				loginContributorCache.put(id, name);
 				return name;
 			} else {
