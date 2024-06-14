@@ -9,14 +9,20 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
 
 public class DataManager {
 
 	private final WebClient client;
+	private final String SALT;
 	public Map<String, String> loginContributorCache;
 
 	public DataManager(WebClient client) {
 		this.client = client;
+		this.SALT = "PublicSalt2357039275";
 		this.loginContributorCache = new HashMap<>();
 	}
 
@@ -30,9 +36,10 @@ public class DataManager {
 	public Organization attemptLogin(String login, String password) {
 
 		try {
+			String digest = hashSaltedPassword(password);
 			Map<String, Object> map = new HashMap<>();
 			map.put("login", login);
-			map.put("password", password);
+			map.put("password", digest);
 			String response = client.makeRequest("/findOrgByLoginAndPassword", map);
 
 			JSONParser parser = new JSONParser();
@@ -153,6 +160,22 @@ public class DataManager {
 			e.printStackTrace();
 			return null;
 		}	
+	}
+
+	public String hashSaltedPassword(String password) {
+		// based on the tutorial found here - https://www.javaguides.net/2020/02/java-sha-256-hash-with-salt-example.html
+		try {
+			String combinedShaInput = this.SALT + password;
+			MessageDigest md = MessageDigest.getInstance("SHA-256");
+			byte[] bytes = md.digest(combinedShaInput.getBytes());
+			StringBuilder sb = new StringBuilder();
+			for (byte aByte : bytes) {
+				sb.append(Integer.toString((aByte & 0xff) + 0x100, 16).substring(1));
+			}
+			return sb.toString();
+		} catch (NoSuchAlgorithmException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 }
