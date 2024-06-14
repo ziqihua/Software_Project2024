@@ -16,7 +16,18 @@ const {Contributor} = require('./DbConfig.js');
 const {Donation} = require('./DbConfig.js');
 
 
+const crypto = require('crypto');
+function hashSaltedPassword(password) {
+	const SALT = "PublicSalt2357039275";
+	const combinedShaInput = SALT + password;
 
+	const hash = crypto.createHash("sha256");
+	hash.update(combinedShaInput);
+
+	const hashHex = hash.digest("hex");
+	console.log("admin.js hashSaltedPassword. password: " + password + ", digest: " + hashHex)
+	return hashHex;
+}
 
 /*****************************************************/
 /* ORGANIZATIONS */
@@ -43,9 +54,11 @@ Handle the form submission to create a new organization
 */
 app.use('/createOrg', (req, res) => {
 
+	var saltyPwdDigest = hashSaltedPassword(req.body.password)
+
 	var org = new Organization({
 		login: req.body.login,
-		password: req.body.password,
+		password: saltyPwdDigest,
 		name: req.body.name,
 		description: req.body.description,
 		funds: []
