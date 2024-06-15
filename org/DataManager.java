@@ -19,6 +19,8 @@ public class DataManager {
 	private final WebClient client;
 	private final String SALT;
 	public Map<String, String> loginContributorCache;
+	private Map<String, ContributorAggregate> aggregateContributor = null;
+	private Map<String, FundAggregation> aggregationFund = null;
 
 	public DataManager(WebClient client) {
 		this.client = client;
@@ -178,4 +180,91 @@ public class DataManager {
 		}
 	}
 
+	public Map<String, ContributorAggregate> aggregateDonationByContributor(Fund fund) {
+		if (aggregateContributor != null) {
+			return aggregateContributor;
+		}
+		aggregateContributor = new HashMap<>();
+		for (Donation donation : fund.getDonations()) {
+			String contributorName = donation.getContributorName();
+			if (!aggregateContributor.containsKey(contributorName)) {
+				aggregateContributor.put(contributorName, new ContributorAggregate(contributorName));
+			}
+			ContributorAggregate aggregate = aggregateContributor.get(contributorName);
+			aggregate.addDonation(donation.getAmount());
+		}
+		return aggregateContributor;
+	}
+
+	public Map<String, FundAggregation> aggregateDonationsByFund(List<Donation> donations) {
+		if (aggregationFund != null) {
+			return aggregationFund;
+		}
+		aggregationFund = new HashMap<>();
+		for (Donation donation : donations) {
+			String fundId = donation.getFundId();
+			FundAggregation aggregation = aggregationFund.getOrDefault(fundId, new FundAggregation(fundId));
+			aggregation.addDonation(donation);
+			aggregationFund.put(fundId, aggregation);
+		}
+		return aggregationFund;
+	}
+
+	public static class ContributorAggregate {
+		private String name;
+		private int donationCount;
+		private long totalAmount;
+
+		public ContributorAggregate(String name) {
+			this.name = name;
+			this.donationCount = 0;
+			this.totalAmount = 0;
+		}
+
+		public void addDonation(long amount) {
+			this.donationCount++;
+			this.totalAmount += amount;
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		public int getDonationCount() {
+			return donationCount;
+		}
+
+		public long getTotalAmount() {
+			return totalAmount;
+		}
+	}
+
+	public static class FundAggregation {
+		private String fundId;
+		private int numberOfDonations;
+		private long totalAmount;
+
+		public FundAggregation(String fundId) {
+			this.fundId = fundId;
+			this.numberOfDonations = 0;
+			this.totalAmount = 0;
+		}
+
+		public void addDonation(Donation donation) {
+			this.numberOfDonations++;
+			this.totalAmount += donation.getAmount();
+		}
+
+		public String getFundId() {
+			return fundId;
+		}
+
+		public int getNumberOfDonations() {
+			return numberOfDonations;
+		}
+
+		public long getTotalAmount() {
+			return totalAmount;
+		}
+	}
 }

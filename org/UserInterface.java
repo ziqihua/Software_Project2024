@@ -1,6 +1,4 @@
-import java.util.List;
-import java.util.Scanner;
-import java.util.Date;
+import java.util.*;
 import java.text.SimpleDateFormat;
 
 public class UserInterface {
@@ -124,9 +122,33 @@ public class UserInterface {
 		System.out.println("Number of donations: " + donations.size());
 		SimpleDateFormat dateFormat = new SimpleDateFormat("MMMM dd, yyyy");
 
-		for (Donation donation : donations) {
-			String formattedDate = formatDateString(donation.getDate(), dateFormat);
-			System.out.println("* " + donation.getContributorName() + ": $" + donation.getAmount() + " on " + formattedDate);
+		System.out.println("Enter 'c' to aggregate donations by contributors, 'f' to aggregate donations by funds: ");
+		String input = in.nextLine();
+		if (input.equalsIgnoreCase("c")) {
+			Map<String, DataManager.ContributorAggregate> aggregates = dataManager.aggregateDonationByContributor(fund);
+			aggregates.values().stream()
+					.sorted(Comparator.comparingLong(DataManager.ContributorAggregate::getTotalAmount).reversed())
+					.forEach(aggregate -> {
+						System.out.println(aggregate.getName() + ", " + aggregate.getDonationCount() + " donations, $"
+								+ aggregate.getTotalAmount() + " total");
+					});
+		} else if (input.equalsIgnoreCase("f")) {
+			List<Donation> allDonations = new ArrayList<>();
+			for (Fund f : org.getFunds()) {
+				allDonations.addAll(f.getDonations());
+			}
+			Map<String, DataManager.FundAggregation> fundAggregates = dataManager.aggregateDonationsByFund(allDonations);
+			fundAggregates.values().stream()
+					.sorted(Comparator.comparingLong(DataManager.FundAggregation::getTotalAmount).reversed())
+					.forEach(aggregate -> {
+						System.out.println("Fund ID: " + aggregate.getFundId() + ", " + aggregate.getNumberOfDonations()
+								+ " donations, $" + aggregate.getTotalAmount() + " total");
+					});
+		} else {
+			for (Donation donation : donations) {
+				String formattedDate = formatDateString(donation.getDate(), dateFormat);
+				System.out.println("* " + donation.getContributorName() + ": $" + donation.getAmount() + " on " + formattedDate);
+			}
 		}
 
 		long totalDonationAmount = donations.stream().mapToLong(Donation::getAmount).sum();
