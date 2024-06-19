@@ -1,4 +1,3 @@
-
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -8,11 +7,11 @@ import java.util.Map;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-
 
 public class DataManager {
 
@@ -23,12 +22,13 @@ public class DataManager {
 	private Map<String, FundAggregation> aggregationFund = null;
 
 	public DataManager(WebClient client) {
+		if (client == null) {
+			throw new IllegalStateException("WebClient cannot be null");
+		}
 		this.client = client;
 		this.SALT = "PublicSalt2357039275";
 		this.loginContributorCache = new HashMap<>();
 	}
-
-
 
 	/**
 	 * Attempt to log the user into an Organization account using the login and password.
@@ -36,6 +36,9 @@ public class DataManager {
 	 * @return an Organization object if successful; null if unsuccessful
 	 */
 	public Organization attemptLogin(String login, String password) {
+		if (login == null || password == null) {
+			throw new IllegalArgumentException("Login and password cannot be null");
+		}
 
 		try {
 			String digest = hashSaltedPassword(password);
@@ -43,6 +46,10 @@ public class DataManager {
 			map.put("login", login);
 			map.put("password", digest);
 			String response = client.makeRequest("/findOrgByLoginAndPassword", map);
+
+			if (response == null) {
+				throw new IllegalStateException("WebClient returned null response");
+			}
 
 			JSONParser parser = new JSONParser();
 			JSONObject json = (JSONObject) parser.parse(response);
@@ -74,10 +81,6 @@ public class DataManager {
 						String contributorId = (String) donation.get("contributor");
 						String contributorName = this.getContributorName(contributorId);
 
-//						System.out.println(fundName);
-//						System.out.println(contributorId);
-//						System.out.println(contributorName + "\n");
-
 						long amount = (Long) donation.get("amount");
 						String date = (String) donation.get("date");
 						donationList.add(new Donation(fundId, contributorName, amount, date));
@@ -87,9 +90,13 @@ public class DataManager {
 					org.addFund(newFund);
 				}
 				return org;
+			} else if (status.equals("error")) {
+				throw new IllegalStateException((String) json.get("error"));
 			} else {
 				return null;
 			}
+		} catch (ParseException e) {
+			throw new IllegalStateException("Malformed JSON response", e);
 		} catch (Exception e) {
 			throw new IllegalStateException("Error in communicating with server", e);
 		}
@@ -101,15 +108,24 @@ public class DataManager {
 	 * @return the name of the contributor on success; null if no contributor is found
 	 */
 	public String getContributorName(String id) {
+		if (id == null) {
+			throw new IllegalArgumentException("ID cannot be null");
+		}
+
 		// Task 2.1 Check the cache for the contributor name
 		if (loginContributorCache.containsKey(id)) {
 			return loginContributorCache.get(id);
 		}
+
 		// Contributor not found. Make a request, add it to the cache, and return it
 		try {
 			Map<String, Object> map = new HashMap<>();
 			map.put("id", id);
 			String response = client.makeRequest("/findContributorNameById", map);
+
+			if (response == null) {
+				throw new IllegalStateException("WebClient returned null response");
+			}
 
 			JSONParser parser = new JSONParser();
 			JSONObject json = (JSONObject) parser.parse(response);
@@ -120,25 +136,29 @@ public class DataManager {
 				String name = (String) dataObject.get("name");
 				loginContributorCache.put(id, name);
 				return name;
+			} else if (status.equals("error")) {
+				throw new IllegalStateException((String) json.get("error"));
 			} else {
 				// Return a default or error message when contributor is not found
 				return null;
 			}
+		} catch (ParseException e) {
+			throw new IllegalStateException("Malformed JSON response", e);
 		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
+			throw new IllegalStateException("Error in communicating with server", e);
 		}
 	}
-
-
 
 	/**
 	 * This method creates a new fund in the database using the /createFund endpoint in the API
 	 * @return a new Fund object if successful; null if unsuccessful
 	 */
 	public Fund createFund(String orgId, String name, String description, long target) {
-		try {
+		if (orgId == null || name == null || description == null) {
+			throw new IllegalArgumentException("orgId, name, and description cannot be null");
+		}
 
+		try {
 			Map<String, Object> map = new HashMap<>();
 			map.put("orgId", orgId);
 			map.put("name", name);
@@ -146,22 +166,28 @@ public class DataManager {
 			map.put("target", target);
 			String response = client.makeRequest("/createFund", map);
 
+			if (response == null) {
+				throw new IllegalStateException("WebClient returned null response");
+			}
+
 			JSONParser parser = new JSONParser();
 			JSONObject json = (JSONObject) parser.parse(response);
-			String status = (String)json.get("status");
+			String status = (String) json.get("status");
 
 			if (status.equals("success")) {
-				JSONObject fund = (JSONObject)json.get("data");
-				String fundId = (String)fund.get("_id");
+				JSONObject fund = (JSONObject) json.get("data");
+				String fundId = (String) fund.get("_id");
 				return new Fund(fundId, name, description, target);
+			} else if (status.equals("error")) {
+				throw new IllegalStateException((String) json.get("error"));
+			} else {
+				return null;
 			}
-			else return null;
-
+		} catch (ParseException e) {
+			throw new IllegalStateException("Malformed JSON response", e);
+		} catch (Exception e) {
+			throw new IllegalStateException("Error in communicating with server", e);
 		}
-		catch (Exception e) {
-			e.printStackTrace();
-			return null;
-		}	
 	}
 
 	public String hashSaltedPassword(String password) {

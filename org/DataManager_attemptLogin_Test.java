@@ -52,9 +52,6 @@ public class DataManager_attemptLogin_Test {
             }
         });
 
-//        Organization org = dm.attemptLogin("testLogin", "testPassword");
-//
-//        assertNull(org);
         assertThrows(IllegalStateException.class, () -> {
             dm.attemptLogin("testLogin", "testPassword");
         });

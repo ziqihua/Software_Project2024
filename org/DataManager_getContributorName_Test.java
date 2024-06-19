@@ -49,7 +49,7 @@ public class DataManager_getContributorName_Test {
         assertNull(name);
     }
 
-    @Test
+    @Test(expected = IllegalStateException.class)
     public void testGetContributorNameWithInvalidResponse() {
         DataManager dm = new DataManager(new WebClient("localhost", 3001) {
 
@@ -63,12 +63,10 @@ public class DataManager_getContributorName_Test {
 
         });
 
-        String name = dm.getContributorName("contrib123");
-
-        assertNull(name);
+        dm.getContributorName("contrib123");
     }
 
-    @Test
+    @Test(expected = IllegalStateException.class)
     public void testGetContributorNameWithException() {
         DataManager dm = new DataManager(new WebClient("localhost", 3001) {
 
@@ -79,9 +77,7 @@ public class DataManager_getContributorName_Test {
 
         });
 
-        String name = dm.getContributorName("contrib123");
-
-        assertNull(name);
+        dm.getContributorName("contrib123");
     }
 
     @Test
@@ -93,7 +89,7 @@ public class DataManager_getContributorName_Test {
             }
         });
 
-        Map<String, String> loginContributorCache = new HashMap<String, String>();
+        Map<String, String> loginContributorCache = new HashMap<>();
         loginContributorCache.put("contrib123", "Test Contributor");
         dm.loginContributorCache = loginContributorCache;
 

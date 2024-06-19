@@ -2,12 +2,11 @@ import java.util.*;
 import java.text.SimpleDateFormat;
 
 public class UserInterface {
-	
-	
+
 	private DataManager dataManager;
 	private Organization org;
 	private Scanner in = new Scanner(System.in);
-	
+
 	public UserInterface(DataManager dataManager, Organization org) {
 		this.dataManager = dataManager;
 		this.org = org;
@@ -20,6 +19,10 @@ public class UserInterface {
 
 	public void start() {
 		while (true) {
+			if (org == null) {
+				login();
+			}
+
 			System.out.println("\n\n");
 			if (org.getFunds().size() > 0) {
 				System.out.println("There are " + org.getFunds().size() + " funds in this organization:");
@@ -32,10 +35,13 @@ public class UserInterface {
 				System.out.println("Enter the fund number to see more information.");
 			}
 			System.out.println("Enter 0 to create a new fund");
+			System.out.println("Enter 'logout' to log out");
 			String input = in.nextLine();
 
 			if (input.equals("0")) {
 				createFund();
+			} else if (input.equalsIgnoreCase("logout")) {
+				logout();
 			} else if (input.toLowerCase().equals("q") || input.toLowerCase().equals("quit")) {
 				System.out.println("Good bye!");
 				break;
@@ -54,62 +60,69 @@ public class UserInterface {
 		}
 	}
 
-	
 	public void createFund() {
-
-		String name = "";
-		boolean nameSuccess = false;
-		while (!nameSuccess) {
-			System.out.println("Enter the fund name: ");
-			name = in.nextLine().trim();
-			if (name.isBlank()) {
-				System.out.println("Fund names may not be blank.");
-				continue;
-			} else {
-				nameSuccess = true;
-			}
-		}
-
-		String description = "";
-		boolean descriptionSuccess = false;
-		while (!descriptionSuccess) {
-			System.out.println("Enter the fund description: ");
-			description = in.nextLine().trim();
-			if (description.isBlank()) {
-				System.out.println("Fund descriptions may not be blank.");
-				continue;
-			} else {
-				descriptionSuccess = true;
-			}
-		}
-
-
-
-		long target = 0;
-		boolean targetSuccess = false;
-		while (!targetSuccess) {
-			System.out.println("Enter the fund target:");
+		while (true) {
 			try {
-				target = Long.parseLong(in.nextLine());
-				if (target < 0) {
-					System.out.println("Invalid fund target. Please enter a positive integer.");
-				} else {
-					targetSuccess = true;
-					System.out.println("Fund target set to: " + target);
+				String name = "";
+				boolean nameSuccess = false;
+				while (!nameSuccess) {
+					System.out.println("Enter the fund name: ");
+					name = in.nextLine().trim();
+					if (name.isBlank()) {
+						System.out.println("Fund names may not be blank.");
+						continue;
+					} else {
+						nameSuccess = true;
+					}
 				}
-			} catch (NumberFormatException e) {
-				System.out.println("Invalid input. Please enter a numeric value.");
+
+				String description = "";
+				boolean descriptionSuccess = false;
+				while (!descriptionSuccess) {
+					System.out.println("Enter the fund description: ");
+					description = in.nextLine().trim();
+					if (description.isBlank()) {
+						System.out.println("Fund descriptions may not be blank.");
+						continue;
+					} else {
+						descriptionSuccess = true;
+					}
+				}
+
+				long target = 0;
+				boolean targetSuccess = false;
+				while (!targetSuccess) {
+					System.out.println("Enter the fund target:");
+					try {
+						target = Long.parseLong(in.nextLine());
+						if (target < 0) {
+							System.out.println("Invalid fund target. Please enter a positive integer.");
+						} else {
+							targetSuccess = true;
+							System.out.println("Fund target set to: " + target);
+						}
+					} catch (NumberFormatException e) {
+						System.out.println("Invalid input. Please enter a numeric value.");
+					}
+				}
+
+				Fund fund = dataManager.createFund(org.getId(), name, description, target);
+				org.getFunds().add(fund);
+				break; // Break out of the while loop if the operation is successful
+			} catch (IllegalStateException e) {
+				System.out.println("Error in communicating with server. Would you like to retry? (yes/no)");
+				String retry = in.nextLine();
+				if (!retry.equalsIgnoreCase("yes")) {
+					break;
+				}
+			} catch (IllegalArgumentException e) {
+				System.out.println("Error in input: " + e.getMessage());
+				break;
 			}
 		}
-
-
-		Fund fund = dataManager.createFund(org.getId(), name, description, target);
-		org.getFunds().add(fund);
 	}
 
-
 	public void displayFund(int fundNumber) {
-
 		Fund fund = org.getFunds().get(fundNumber - 1);
 
 		System.out.println("\n\n");
@@ -166,15 +179,46 @@ public class UserInterface {
 			Date date = originalFormat.parse(dateStr);
 			return formatter.format(date);
 		} catch (Exception e) {
-			e.printStackTrace();
 			return dateStr;
 		}
 	}
 
-	
-	
-	public static void main(String[] args) {
+	private void login() {
+		while (true) {
+			System.out.println("Enter login: ");
+			String login = in.nextLine();
+			System.out.println("Enter password: ");
+			String password = in.nextLine();
 
+			try {
+				Organization org = dataManager.attemptLogin(login, password);
+
+				if (org == null) {
+					System.out.println("Login failed. Would you like to retry? (yes/no)");
+					String retry = in.nextLine();
+					if (!retry.equalsIgnoreCase("yes")) {
+						break;
+					}
+				} else {
+					this.org = org;
+					break;
+				}
+			} catch (IllegalStateException e) {
+				System.out.println("Error in communicating with server. Would you like to retry? (yes/no)");
+				String retry = in.nextLine();
+				if (!retry.equalsIgnoreCase("yes")) {
+					break;
+				}
+			}
+		}
+	}
+
+	private void logout() {
+		this.org = null;
+		System.out.println("Logged out successfully.");
+	}
+
+	public static void main(String[] args) {
 		if (args.length == 0) {
 			System.out.println("No Arguments (login, password) passed into UserInterface main");
 			return;
@@ -185,22 +229,24 @@ public class UserInterface {
 		}
 
 		DataManager ds = new DataManager(new WebClient("localhost", 3001));
-		
+
 		String login = args[0];
 		String password = args[1];
 
+		UserInterface ui = new UserInterface(ds, null);
 
 		try {
-			Organization org = ds.attemptLogin(login, password);
+			ui.org = ds.attemptLogin(login, password);
 
-			if (org == null) {
+			if (ui.org == null) {
 				System.out.println("Login failed.");
+				ui.login();
 			} else {
-				UserInterface ui = new UserInterface(ds, org);
 				ui.start();
 			}
 		} catch (IllegalStateException e) {
 			System.out.println("Error in communicating with server");
+			ui.login();
 		}
 	}
 }
