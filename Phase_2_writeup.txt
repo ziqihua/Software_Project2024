@@ -1,0 +1,78 @@
+Phase2 Write-Up
+
+The Additional Tasks that you would like graded for this phase.
+Task 2.10
+Task 2.6
+Task 2.8
+
+For each task you completed in this phase (Required or Additional), a brief description of the changes you made to the provided code, e.g. the names of any classes or methods that were changed, new methods that were created, etc.
+
+Task 2.1
+Added a private Map called loginContributorCache to DataManager.Java
+Inside DataManager.getContributorName, at the start of each call it attempts to lookup the name in the cache. If it is not already in the cache, it makes a WeClient request and adds it to the cache before returning the contributor
+Modified an existing test case to check that names are successfully added to the cache, and added a test case to check that the cache is actually used if the name is already there, so getContributorName still has 100% coverage
+
+Task 2.2:
+DataManager class:
+Constructor:
+Added a check for null WebClient and threw IllegalStateException if WebClient is null.
+attemptLogin Method:
+Added null checks for login and password, throwing IllegalArgumentException if either is null.
+Added a check for null response from the WebClient, throwing IllegalStateException if response is null.
+Threw IllegalStateException if the status in the response is not "success".
+getContributorName Method:
+Added a null check for id, throwing IllegalArgumentException if id is null.
+Added a check for null response from the WebClient, throwing IllegalStateException if response is null.
+Threw IllegalStateException if the status in the response is not "success".
+createFund Method:
+Added null checks for orgId, name, and description, throwing IllegalArgumentException if any are null.
+Added a check for null response from the WebClient, throwing IllegalStateException if response is null.
+Threw IllegalStateException if the status in the response is not "success".
+
+UserInterface class:
+Retry Mechanism:
+Added retry options in createFund and displayFund methods to prompt the user to retry the operation if an IllegalStateException occurs.
+User-Friendly Error Messages:
+Replaced stack traces with meaningful error messages for the user.
+Provided guidance to the user on whether to retry the operation or not.
+Main Method Exception Handling:
+Added a try-catch block around the login attempt to handle IllegalStateException and display an error message if communication with the server fails.
+These changes enable the interface to provide clear feedback on errors and allow the user to retry operations when issues occur.
+
+Task 2.3
+DataManager
+Added a new method aggregateDonationByContributor
+Added a new static class ContributorAggregate
+UserInterface
+Modified displayFund method, add options for users to activate the donation aggregate function.
+Test class
+Added new test class DataManager_aggregateDonationByContributor_Test for new method, ensuring the 100% coverage
+
+Task 2.6
+DataManager
+Added a new method aggregateDonationByFund
+Added a new static class FundAggregation
+UserInterface
+Modified displayFund method, add options for users to activate the donation aggregate function.
+Test class
+Added new test class DataManager_aggregateDonationByFund_Test for new method, ensuring the 100% coverage
+
+Task 2.10
+DataManager has a new variable private final String SALT, which is initialized to a hard coded value in the constructor so it is consistent across runs
+DataManager.hashSaltedPassword is a new function that calculates the Sha256 hash of SALT || Password
+DataManager.attemptLogin calculates digest = hashSaltedPassword(password), and passes this value to the api call instead of the raw password
+The endpoint to create a new user in the Administrator App calculates the hash in a consistent manner and stores that in the database instead of a plaintext password
+org/DataManager_hashSaltedPasswordTest.java has a few tests so there is full coverage and one can tell the basic functionality is working
+
+Task 2.8:
+Added login() Method: This method handles the login process, allowing users to retry if the login fails.
+Added logout() Method: This method sets the org to null, effectively logging the user out and prompting them to log back in.
+Modified start() Method: The start() method now checks if the org is null and calls the login() method if necessary. It also adds an option to log out.
+Updated main() Method: The main() method now initializes the UserInterface with org set to null and handles initial login or retry logic.
+
+3. N/A
+4. N/A
+
+Spencer: Task 2.1 and Task 2.10
+Rae: Task 2.3 and Task 2.6
+Grace: Task 2.2 and Task 2.8
