@@ -1,5 +1,7 @@
+import org.json.simple.JSONObject;
 import org.junit.Test;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.Assert.*;
@@ -10,7 +12,6 @@ public class DataManager_makePasswordUpdateRequest_Test {
     @Test
     public void test_success_path() {
         DataManager dm = new DataManager(new WebClient("localhost", 3001) {
-            @Override
             public String makeRequest(String resource, Map<String, Object> queryParams) {
                 return "{\"status\":\"success\"}";
             }

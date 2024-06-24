@@ -233,7 +233,6 @@ public class UserInterface {
 			passwordSuccess = status.equals("success");
 		} catch (Exception e) {
 			System.out.println("An internal server error occurred. Please try again later");
-			start();
 		}
 
 		// if the user incorrectly enters the current password,
@@ -241,7 +240,7 @@ public class UserInterface {
 		// and then go back to the start menu
 		if (!passwordSuccess) {
 			System.out.println("Entered password is not correct");
-			start();
+			return;
 		}
 
 		// the app should prompt the user to enter the new password twice
@@ -255,7 +254,7 @@ public class UserInterface {
 		// and then go back to the start menu
 		if (!newPass1.equals(newPass2)) {
 			System.out.println("Entered new passwords do not match");
-			start();
+			return;
 		}
 
 		// Everything is good, have the DataManager handle the API call to update the org's password
@@ -266,16 +265,15 @@ public class UserInterface {
 			this.dataManager.makePasswordUpdateRequest(this.org.getId(), newPass1);
 		} catch (IllegalArgumentException e) {
 			System.out.println("Something went wrong processing your organization's information or new password. Please try again.");
-			start();
+			return;
 		} catch (IllegalStateException e) {
 			System.out.println("Something went wrong communicating with the server. Please try again.");
-			start();
+			return;
 		}
 
 		// If the user successfully changes their password,
 		// they should see a message indicating so and return to the start menu
 		System.out.println("Password successfully updated. Returning to start menu");
-		start();
 	}
 
 	private void logout() {
