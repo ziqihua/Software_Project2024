@@ -16,6 +16,7 @@ import java.security.NoSuchAlgorithmException;
 public class DataManager {
 
 	private final WebClient client;
+	public String HASH_ALGORITHM;
 	private final String SALT;
 	public Map<String, String> loginContributorCache;
 	private Map<String, ContributorAggregate> aggregateContributor = null;
@@ -27,6 +28,7 @@ public class DataManager {
 		}
 		this.client = client;
 		this.SALT = "PublicSalt2357039275";
+		this.HASH_ALGORITHM = "SHA-256";
 		this.loginContributorCache = new HashMap<>();
 	}
 
@@ -95,7 +97,7 @@ public class DataManager {
 		// based on the tutorial found here - https://www.javaguides.net/2020/02/java-sha-256-hash-with-salt-example.html
 		try {
 			String combinedShaInput = this.SALT + password;
-			MessageDigest md = MessageDigest.getInstance("SHA-256");
+			MessageDigest md = MessageDigest.getInstance(this.HASH_ALGORITHM);
 			byte[] bytes = md.digest(combinedShaInput.getBytes());
 			StringBuilder sb = new StringBuilder();
 			for (byte aByte : bytes) {

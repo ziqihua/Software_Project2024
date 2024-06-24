@@ -1,6 +1,8 @@
 import static org.junit.Assert.*;
 import org.junit.Test;
 
+import java.security.NoSuchAlgorithmException;
+
 public class DataManager_hashSaltedPasswordTest {
     @Test
     public void testGoodPath() {
@@ -18,5 +20,13 @@ public class DataManager_hashSaltedPasswordTest {
         String result1 = dm.hashSaltedPassword(password1);
         String result2 = dm.hashSaltedPassword(password2);
         assert(!result1.equals(result2));
+    }
+
+    @Test (expected = RuntimeException.class)
+    public void testBadHashAlg() {
+        DataManager dm = new DataManager(new WebClient("localhost", 3001));
+        dm.HASH_ALGORITHM = "bad_alg";
+        String password1 = "myPassword1";
+        String result1 = dm.hashSaltedPassword(password1);
     }
 }
