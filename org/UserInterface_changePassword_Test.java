@@ -50,7 +50,14 @@ public class UserInterface_changePassword_Test {
 
     @Test
     public void test_newPasswordsDoNotMatch() {
-        DataManager mockDataManager = new DataManager(mockClient);
+        DataManager mockDataManager = new DataManager(mockClient) {
+            @Override
+            public JSONObject makeLoginRequest(String orgId, String newPassword) {
+                Map map = new HashMap<String, String>();
+                map.put("status", "success");
+                return new JSONObject(map);
+            }
+        };
         String input = "oldPassword\nnewPassword\nNOT!!!newPassword\nq\n";
         ByteArrayInputStream inputStream = new ByteArrayInputStream(input.getBytes());
         Scanner testScanner = new Scanner(inputStream);
@@ -74,6 +81,12 @@ public class UserInterface_changePassword_Test {
     @Test
     public void test_dm_throws_illegalArgumentException() {
         DataManager mockDataManager = new DataManager(mockClient) {
+            @Override
+            public JSONObject makeLoginRequest(String orgId, String newPassword) {
+                Map map = new HashMap<String, String>();
+                map.put("status", "success");
+                return new JSONObject(map);
+            }
             @Override
             public void makePasswordUpdateRequest(String orgId, String newPassword) {
                 throw new IllegalArgumentException();
@@ -103,6 +116,12 @@ public class UserInterface_changePassword_Test {
     public void test_dm_throws_illegalStateException() {
         DataManager mockDataManager = new DataManager(mockClient){
             @Override
+            public JSONObject makeLoginRequest(String orgId, String newPassword) {
+                Map map = new HashMap<String, String>();
+                map.put("status", "success");
+                return new JSONObject(map);
+            }
+            @Override
             public void makePasswordUpdateRequest(String orgId, String newPassword) {
                 throw new IllegalStateException();
             }
@@ -130,6 +149,12 @@ public class UserInterface_changePassword_Test {
     @Test
     public void test_successful_update() {
         DataManager mockDataManager = new DataManager(mockClient){
+            @Override
+            public JSONObject makeLoginRequest(String orgId, String newPassword) {
+                Map map = new HashMap<String, String>();
+                map.put("status", "success");
+                return new JSONObject(map);
+            }
             @Override
             public void makePasswordUpdateRequest(String orgId, String newPassword) {
                 return;

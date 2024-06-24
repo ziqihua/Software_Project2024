@@ -108,6 +108,10 @@ public class DataManager {
 	}
 
 	public JSONObject makeLoginRequest(String login, String password) throws ParseException {
+		if (login == null || password == null) {
+			throw new IllegalArgumentException("Login and password cannot be null");
+		}
+
 		String digest = hashSaltedPassword(password);
 		Map<String, Object> map = new HashMap<>();
 		map.put("login", login);
@@ -138,6 +142,11 @@ public class DataManager {
 		map.put("_id", orgId);
 		map.put("password", digest);
 		String response = client.makeRequest("/updatePassword", map);
+
+		if (response == null) {
+			System.out.println("WebClient returned null response");
+			throw new IllegalStateException("WebClient returned null response");
+		}
 
 		JSONParser parser = new JSONParser();
 		try {

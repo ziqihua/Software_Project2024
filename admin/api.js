@@ -6,6 +6,9 @@ const {Fund} = require('./DbConfig.js');
 const {Contributor} = require('./DbConfig.js');
 const {Donation} = require('./DbConfig.js');
 
+// set up BodyParser
+var bodyParser = require('body-parser');
+app.use(bodyParser.urlencoded({ extended: true }));
 
 /*
 Return an org with login specified as req.query.login and password specified as 
@@ -362,9 +365,12 @@ app.use('/allOrgs', (req, res) => {
 
 
 app.use('/updatePassword', (req, res) => {
-	var filter = { "_id": req.body._id };
+	console.log("Entered /updatePassword")
+	console.log("req body: ", req.query)
 
-	var update = { "password": req.body.password };
+	var filter = { "_id": req.query._id };
+
+	var update = { "password": req.query.password };
 
 	var action = { "$set": update };
 

@@ -39,13 +39,13 @@ public class UserInterface {
 				System.out.println("Enter the fund number to see more information.");
 			}
 			System.out.println("Enter 0 to create a new fund");
-			System.out.println("Enter 2 to change passwords");
+			System.out.println("Enter changePassword to change passwords");
 			System.out.println("Enter 'logout' to log out");
 			String input = in.nextLine();
 
 			if (input.equals("0")) {
 				createFund();
-			} else if (input.equals(2)) {
+			} else if (input.equals("changePassword")) {
 				changePassword();
 			} else if (input.equalsIgnoreCase("logout")) {
 				logout();
@@ -233,6 +233,8 @@ public class UserInterface {
 			passwordSuccess = status.equals("success");
 		} catch (Exception e) {
 			System.out.println("An internal server error occurred. Please try again later");
+			e.printStackTrace();
+			return;
 		}
 
 		// if the user incorrectly enters the current password,
@@ -268,6 +270,7 @@ public class UserInterface {
 			return;
 		} catch (IllegalStateException e) {
 			System.out.println("Something went wrong communicating with the server. Please try again.");
+			e.printStackTrace();
 			return;
 		}
 
@@ -297,6 +300,7 @@ public class UserInterface {
 		String password = args[1];
 
 		UserInterface ui = new UserInterface(ds, null);
+		ui.CurrUser = login;
 
 		try {
 			ui.org = ds.attemptLogin(login, password);
