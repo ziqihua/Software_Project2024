@@ -42,39 +42,11 @@ public class DataManager_createOrganization_Test {
     }
 
     @Test
-    public void testFailedCreation() {
-        DataManager dm = new DataManager(new WebClient("localhost", 3001) {
-            @Override
-            public String makeRequest(String resource, Map<String, Object> queryParams) {
-                return "{\"status\":\"error\",\"error\":\"Creation failed\"}";
-            }
-        });
-
-        assertThrows(IllegalStateException.class, () -> {
-            dm.createOrganization("name", "description");
-        });
-    }
-
-    @Test
     public void testMalformedJSONResponse() {
         DataManager dm = new DataManager(new WebClient("localhost", 3001) {
             @Override
             public String makeRequest(String resource, Map<String, Object> queryParams) {
                 return "invalid JSON";
-            }
-        });
-
-        assertThrows(IllegalStateException.class, () -> {
-            dm.createOrganization("name", "description");
-        });
-    }
-
-    @Test
-    public void testExceptionHandling() {
-        DataManager dm = new DataManager(new WebClient("localhost", 3001) {
-            @Override
-            public String makeRequest(String resource, Map<String, Object> queryParams) {
-                throw new RuntimeException("Simulated exception");
             }
         });
 
@@ -90,6 +62,29 @@ public class DataManager_createOrganization_Test {
             @Override
             public String makeRequest(String resource, Map<String, Object> queryParams) {
                 return null;
+            }
+        });
+        assertThrows(IllegalStateException.class, () -> {
+            dm.createOrganization("name", "description");
+        });
+    }
+
+    @Test
+    public void WebClientCannotConnectToServer() {
+
+        // this assumes no server is running on port 3002
+        DataManager dm = new DataManager(new WebClient("localhost", 3002));
+        assertThrows(IllegalStateException.class, () -> {
+            dm.createOrganization("name", "description");
+        });
+    }
+
+    @Test
+    public void testMakePasswordUpdateRequest_WebClientReturnsError() {
+        DataManager dm = new DataManager(new WebClient("localhost", 3001) {
+            @Override
+            public String makeRequest(String resource, Map<String, Object> queryParams) {
+                return "{\"status\":\"error\",\"error\":\"An unexpected database error occurred\"}";
             }
         });
         assertThrows(IllegalStateException.class, () -> {
