@@ -117,4 +117,34 @@ public class DataManager_attemptLogin_Test {
         assertEquals(500, donation.getAmount());
         assertEquals("2024-01-01", donation.getDate());
     }
+
+    @Test
+    public void testMakeLoginRequestNullLogin() {
+        DataManager dm = new DataManager(new WebClient("localhost", 3001) {
+            @Override
+            public String makeRequest(String resource, Map<String, Object> queryParams) {
+                return "{\"status\":\"success\",\"data\":{\"_id\":\"org123\",\"name\":\"Test Org\",\"description\":\"A test organization\",\"funds\":[]}}";
+            }
+        });
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            dm.makeLoginRequest(null, "testPassword");
+        });
+    }
+
+    @Test
+    public void testMakeLoginRequestNullPassword() {
+        DataManager dm = new DataManager(new WebClient("localhost", 3001) {
+            @Override
+            public String makeRequest(String resource, Map<String, Object> queryParams) {
+                return "{\"status\":\"success\",\"data\":{\"_id\":\"org123\",\"name\":\"Test Org\",\"description\":\"A test organization\",\"funds\":[]}}";
+            }
+        });
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            dm.makeLoginRequest("test", null);
+        });
+    }
+
+
 }
