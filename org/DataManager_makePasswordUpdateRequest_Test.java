@@ -10,7 +10,7 @@ public class DataManager_makePasswordUpdateRequest_Test {
 
 
     @Test
-    public void test_success_path() {
+    public void testSuccessPath() {
         DataManager dm = new DataManager(new WebClient("localhost", 3001) {
             public String makeRequest(String resource, Map<String, Object> queryParams) {
                 return "{\"status\":\"success\"}";

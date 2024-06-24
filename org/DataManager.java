@@ -252,6 +252,44 @@ public class DataManager {
 		}
 	}
 
+	public Organization createOrganization(String name, String description) {
+		if (name == null) {
+			throw new IllegalArgumentException("name cannot be null");
+		}
+		if (description == null) {
+			throw new IllegalArgumentException("description cannot be null");
+		}
+
+		try {
+			Map<String, Object> map = new HashMap<>();
+			map.put("name", name);
+			map.put("description", description);
+			String response = client.makeRequest("/createOrg", map);
+
+			if (response == null) {
+				throw new IllegalStateException("WebClient returned null response");
+			}
+
+			JSONParser parser = new JSONParser();
+			JSONObject json = (JSONObject) parser.parse(response);
+			String status = (String) json.get("status");
+
+			if (status.equals("success")) {
+				JSONObject orgJson = (JSONObject) json.get("data");
+				String orgId = (String) orgJson.get("_id");
+				return new Organization(orgId, name, description);
+			} else if (status.equals("error")) {
+				throw new IllegalStateException((String) json.get("error"));
+			} else {
+				return null;
+			}
+		} catch (ParseException e) {
+			throw new IllegalStateException("Malformed JSON response", e);
+		} catch (Exception e) {
+			throw new IllegalStateException("Error in communicating with server", e);
+		}
+	}
+
 
 
 	public Map<String, ContributorAggregate> aggregateDonationByContributor(Fund fund) {
