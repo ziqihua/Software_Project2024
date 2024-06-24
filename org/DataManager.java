@@ -41,18 +41,7 @@ public class DataManager {
 		}
 
 		try {
-			String digest = hashSaltedPassword(password);
-			Map<String, Object> map = new HashMap<>();
-			map.put("login", login);
-			map.put("password", digest);
-			String response = client.makeRequest("/findOrgByLoginAndPassword", map);
-
-			if (response == null) {
-				throw new IllegalStateException("WebClient returned null response");
-			}
-
-			JSONParser parser = new JSONParser();
-			JSONObject json = (JSONObject) parser.parse(response);
+			JSONObject json = makeLoginRequest(login, password);
 			String status = (String) json.get("status");
 
 			if (status.equals("success")) {
@@ -101,6 +90,68 @@ public class DataManager {
 			throw new IllegalStateException("Error in communicating with server", e);
 		}
 	}
+
+	public String hashSaltedPassword(String password) {
+		// based on the tutorial found here - https://www.javaguides.net/2020/02/java-sha-256-hash-with-salt-example.html
+		try {
+			String combinedShaInput = this.SALT + password;
+			MessageDigest md = MessageDigest.getInstance("SHA-256");
+			byte[] bytes = md.digest(combinedShaInput.getBytes());
+			StringBuilder sb = new StringBuilder();
+			for (byte aByte : bytes) {
+				sb.append(Integer.toString((aByte & 0xff) + 0x100, 16).substring(1));
+			}
+			return sb.toString();
+		} catch (NoSuchAlgorithmException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public JSONObject makeLoginRequest(String login, String password) throws ParseException {
+		String digest = hashSaltedPassword(password);
+		Map<String, Object> map = new HashMap<>();
+		map.put("login", login);
+		map.put("password", digest);
+		String response = client.makeRequest("/findOrgByLoginAndPassword", map);
+
+		if (response == null) {
+			throw new IllegalStateException("WebClient returned null response");
+		}
+
+		JSONParser parser = new JSONParser();
+		JSONObject json = (JSONObject) parser.parse(response);
+		return json;
+	}
+
+	// makes an API call to update an organization's password
+	// returns whether the attempt was successful
+	public void makePasswordUpdateRequest(String orgId, String newPassword) {
+		if (orgId == null) {
+			throw new IllegalArgumentException("orgId cannot be null");
+		}
+		if (newPassword == null) {
+			throw new IllegalArgumentException("newPassword cannot be null");
+		}
+
+		String digest = hashSaltedPassword(newPassword);
+		Map<String, Object> map = new HashMap<>();
+		map.put("_id", orgId);
+		map.put("password", digest);
+		String response = client.makeRequest("/updatePassword", map);
+
+		JSONParser parser = new JSONParser();
+		try {
+			JSONObject json = (JSONObject) parser.parse(response);
+			String status = (String) json.get("status");
+			if (!status.equals("success")) {
+				throw new IllegalStateException((String) json.get("error"));
+			}
+		} catch (Exception e) {
+			throw new IllegalStateException("Error in communicating with server", e);
+		}
+	}
+
+
 
 	/**
 	 * Look up the name of the contributor with the specified ID.
@@ -190,21 +241,7 @@ public class DataManager {
 		}
 	}
 
-	public String hashSaltedPassword(String password) {
-		// based on the tutorial found here - https://www.javaguides.net/2020/02/java-sha-256-hash-with-salt-example.html
-		try {
-			String combinedShaInput = this.SALT + password;
-			MessageDigest md = MessageDigest.getInstance("SHA-256");
-			byte[] bytes = md.digest(combinedShaInput.getBytes());
-			StringBuilder sb = new StringBuilder();
-			for (byte aByte : bytes) {
-				sb.append(Integer.toString((aByte & 0xff) + 0x100, 16).substring(1));
-			}
-			return sb.toString();
-		} catch (NoSuchAlgorithmException e) {
-			throw new RuntimeException(e);
-		}
-	}
+
 
 	public Map<String, ContributorAggregate> aggregateDonationByContributor(Fund fund) {
 		if (aggregateContributor != null) {

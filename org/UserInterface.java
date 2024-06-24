@@ -1,3 +1,5 @@
+import org.json.simple.JSONObject;
+
 import java.util.*;
 import java.text.SimpleDateFormat;
 
@@ -6,10 +8,12 @@ public class UserInterface {
 	private DataManager dataManager;
 	private Organization org;
 	private Scanner in = new Scanner(System.in);
+	private String CurrUser;
 
 	public UserInterface(DataManager dataManager, Organization org) {
 		this.dataManager = dataManager;
 		this.org = org;
+
 	}
 
 	// Method to set the scanner for testing purposes
@@ -35,11 +39,14 @@ public class UserInterface {
 				System.out.println("Enter the fund number to see more information.");
 			}
 			System.out.println("Enter 0 to create a new fund");
+			System.out.println("Enter 2 to change passwords");
 			System.out.println("Enter 'logout' to log out");
 			String input = in.nextLine();
 
 			if (input.equals("0")) {
 				createFund();
+			} else if (input.equals(2)) {
+				changePassword();
 			} else if (input.equalsIgnoreCase("logout")) {
 				logout();
 			} else if (input.toLowerCase().equals("q") || input.toLowerCase().equals("quit")) {
@@ -201,6 +208,7 @@ public class UserInterface {
 					}
 				} else {
 					this.org = org;
+					this.CurrUser = login;
 					break;
 				}
 			} catch (IllegalStateException e) {
@@ -211,6 +219,63 @@ public class UserInterface {
 				}
 			}
 		}
+	}
+
+	public void changePassword() {
+		// prompt user for their current password
+		System.out.println("Enter your current password");
+		String currentPassword = in.nextLine();
+		// check if current password is entered correctly
+		boolean passwordSuccess = false;
+		try {
+			JSONObject json  = this.dataManager.makeLoginRequest(this.CurrUser, currentPassword);
+			String status = (String) json.get("status");
+			passwordSuccess = status.equals("success");
+		} catch (Exception e) {
+			System.out.println("An internal server error occurred. Please try again later");
+			start();
+		}
+
+		// if the user incorrectly enters the current password,
+		// the user should see an appropriate error message
+		// and then go back to the start menu
+		if (!passwordSuccess) {
+			System.out.println("Entered password is not correct");
+			start();
+		}
+
+		// the app should prompt the user to enter the new password twice
+		System.out.println("Enter your new password");
+		String newPass1 = in.nextLine();
+		System.out.println("Re-Enter your new password");
+		String newPass2 = in.nextLine();
+
+		// if the two entries for the new password do not match,
+		// the user should see an appropriate error message
+		// and then go back to the start menu
+		if (!newPass1.equals(newPass2)) {
+			System.out.println("Entered new passwords do not match");
+			start();
+		}
+
+		// Everything is good, have the DataManager handle the API call to update the org's password
+		// If any error occurs, including an error communicating with the RESTful API,
+		// the app should display a meaningful error message
+		// and then go back to the start menu
+		try {
+			this.dataManager.makePasswordUpdateRequest(this.org.getId(), newPass1);
+		} catch (IllegalArgumentException e) {
+			System.out.println("Something went wrong processing your organization's information or new password. Please try again.");
+			start();
+		} catch (IllegalStateException e) {
+			System.out.println("Something went wrong communicating with the server. Please try again.");
+			start();
+		}
+
+		// If the user successfully changes their password,
+		// they should see a message indicating so and return to the start menu
+		System.out.println("Password successfully updated. Returning to start menu");
+		start();
 	}
 
 	private void logout() {
@@ -250,3 +315,4 @@ public class UserInterface {
 		}
 	}
 }
+

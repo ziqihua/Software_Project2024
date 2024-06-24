@@ -361,6 +361,27 @@ app.use('/allOrgs', (req, res) => {
     });
 
 
+app.use('/updatePassword', (req, res) => {
+	var filter = { "_id": req.body._id };
+
+	var update = { "password": req.body.password };
+
+	var action = { "$set": update };
+
+	Organization.findOneAndUpdate(filter, action, { new: true }, (err, result) => {
+		if (err) {
+			res.json({ 'status': 'error', 'error': err });
+		} else {
+			if (result) {
+				res.json({ 'status': 'success', 'org': result });
+			} else {
+				res.json({ 'status': 'error', 'error': 'Organization not found' });
+			}
+		}
+	});
+});
+
+
 
 /********************************************************/
 
