@@ -364,7 +364,7 @@ app.use('/allOrgs', (req, res) => {
     });
 
 
-app.use('/updatePassword', (req, res) => {
+app.use('/updateOrganizationPassword', (req, res) => {
 	console.log("Entered /updatePassword")
 	console.log("req body: ", req.query)
 
@@ -387,7 +387,28 @@ app.use('/updatePassword', (req, res) => {
 	});
 });
 
+app.use('/updateContributorPassword', (req, res) => {
+	console.log("Entered /updateContributorPassword")
+	console.log("req body: ", req.query)
 
+	var filter = { "_id": req.query._id };
+
+	var update = { "password": req.query.password };
+
+	var action = { "$set": update };
+
+	Contributor.findOneAndUpdate(filter, action, { new: true }, (err, result) => {
+		if (err) {
+			res.json({ 'status': 'error', 'error': err });
+		} else {
+			if (result) {
+				res.json({ 'status': 'success', 'org': result });
+			} else {
+				res.json({ 'status': 'error', 'error': 'Contributor not found' });
+			}
+		}
+	});
+});
 
 /********************************************************/
 

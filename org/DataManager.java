@@ -143,7 +143,7 @@ public class DataManager {
 		Map<String, Object> map = new HashMap<>();
 		map.put("_id", orgId);
 		map.put("password", digest);
-		String response = client.makeRequest("/updatePassword", map);
+		String response = client.makeRequest("/updateOrganizationPassword", map);
 
 		if (response == null) {
 			System.out.println("WebClient returned null response");
@@ -162,7 +162,36 @@ public class DataManager {
 		}
 	}
 
+	public void makeContributorPasswordUpdateRequest(String contrId, String newPassword) {
+		if (contrId == null) {
+			throw new IllegalArgumentException("contributorId cannot be null");
+		}
+		if (newPassword == null) {
+			throw new IllegalArgumentException("newPassword cannot be null");
+		}
 
+		String digest = hashSaltedPassword(newPassword);
+		Map<String, Object> map = new HashMap<>();
+		map.put("_id", contrId);
+		map.put("password", digest);
+		String response = client.makeRequest("/updateContributorPassword", map);
+
+		if (response == null) {
+			System.out.println("WebClient returned null response");
+			throw new IllegalStateException("WebClient returned null response");
+		}
+
+		JSONParser parser = new JSONParser();
+		try {
+			JSONObject json = (JSONObject) parser.parse(response);
+			String status = (String) json.get("status");
+			if (!status.equals("success")) {
+				throw new IllegalStateException((String) json.get("error"));
+			}
+		} catch (Exception e) {
+			throw new IllegalStateException("Error in communicating with server", e);
+		}
+	}
 
 	/**
 	 * Look up the name of the contributor with the specified ID.
