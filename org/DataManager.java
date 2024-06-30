@@ -408,4 +408,51 @@ public class DataManager {
 			return totalAmount;
 		}
 	}
+
+	public boolean createContributor(String login, String password, String name, String email, String creditCardNumber,
+									 String cvv, String expMonth, String expYear, String zipCode) {
+		// Check for null values and throw an IllegalArgumentException if any are null
+		if (login == null || password == null || name == null || email == null || creditCardNumber == null ||
+				cvv == null || expMonth == null || expYear == null || zipCode == null) {
+			throw new IllegalArgumentException("All fields must be provided.");
+		}
+
+		try {
+			String digest = hashSaltedPassword(password);
+			Map<String, Object> map = new HashMap<>();
+			map.put("login", login);
+			map.put("password", digest);
+			map.put("name", name);
+			map.put("email", email);
+			map.put("creditCardNumber", creditCardNumber);
+			map.put("cvv", cvv);
+			map.put("expMonth", expMonth);
+			map.put("expYear", expYear);
+			map.put("zipCode", zipCode);
+
+			String response = client.makeRequest("/createContributor", map);
+
+			if (response == null) {
+				throw new IllegalStateException("WebClient returned null response");
+			}
+
+			JSONParser parser = new JSONParser();
+			JSONObject json = (JSONObject) parser.parse(response);
+			String status = (String) json.get("status");
+
+			if (status.equals("success")) {
+				return true;
+			} else {
+				String message = (String) json.get("message");
+				if (message == null) {
+					message = "An unknown error occurred.";
+				}
+				throw new IllegalStateException(message);
+			}
+		} catch (ParseException e) {
+			throw new IllegalStateException("Malformed JSON response", e);
+		} catch (Exception e) {
+			throw new IllegalStateException("Error in communicating with server", e);
+		}
+	}
 }

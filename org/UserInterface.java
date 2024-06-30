@@ -13,7 +13,6 @@ public class UserInterface {
 	public UserInterface(DataManager dataManager, Organization org) {
 		this.dataManager = dataManager;
 		this.org = org;
-
 	}
 
 	// Method to set the scanner for testing purposes
@@ -24,44 +23,123 @@ public class UserInterface {
 	public void start() {
 		while (true) {
 			if (org == null) {
-				login();
-			}
-
-			System.out.println("\n\n");
-			if (org.getFunds().size() > 0) {
-				System.out.println("There are " + org.getFunds().size() + " funds in this organization:");
-
-				int count = 1;
-				for (Fund f : org.getFunds()) {
-					System.out.println(count + ": " + f.getName());
-					count++;
+				System.out.println("Enter 'login' to log in, 'register' to create a new organization, or 'quit' to exit:");
+				String input = in.nextLine();
+				if (input.equalsIgnoreCase("login")) {
+					login();
+				} else if (input.equalsIgnoreCase("register")) {
+					registerOrganization();
+				} else if (input.equalsIgnoreCase("quit")) {
+					System.out.println("Good bye!");
+					break;
+				} else {
+					System.out.println("Invalid input. Please enter 'login', 'register', or 'quit'.");
 				}
-				System.out.println("Enter the fund number to see more information.");
-			}
-			System.out.println("Enter 0 to create a new fund");
-			System.out.println("Enter changePassword to change passwords");
-			System.out.println("Enter 'logout' to log out");
-			String input = in.nextLine();
-
-			if (input.equals("0")) {
-				createFund();
-			} else if (input.equals("changePassword")) {
-				changePassword();
-			} else if (input.equalsIgnoreCase("logout")) {
-				logout();
-			} else if (input.toLowerCase().equals("q") || input.toLowerCase().equals("quit")) {
-				System.out.println("Good bye!");
-				break;
 			} else {
-				try {
-					int option = Integer.parseInt(input);
-					if (option > 0 && option <= org.getFunds().size()) {
-						displayFund(option);
-					} else {
-						System.out.println("Invalid input. Please enter a valid fund number or 0 to create a new fund.");
-					}
-				} catch (NumberFormatException e) {
+				displayMenu();
+			}
+		}
+	}
+
+	private void displayMenu() {
+		System.out.println("\n\n");
+		if (org.getFunds().size() > 0) {
+			System.out.println("There are " + org.getFunds().size() + " funds in this organization:");
+
+			int count = 1;
+			for (Fund f : org.getFunds()) {
+				System.out.println(count + ": " + f.getName());
+				count++;
+			}
+			System.out.println("Enter the fund number to see more information.");
+		}
+		System.out.println("Enter 0 to create a new fund");
+		System.out.println("Enter 'changePassword' to change passwords");
+		System.out.println("Enter 'logout' to log out");
+		String input = in.nextLine();
+
+		if (input.equals("0")) {
+			createFund();
+		} else if (input.equals("changePassword")) {
+			changePassword();
+		} else if (input.equalsIgnoreCase("logout")) {
+			logout();
+		} else if (input.toLowerCase().equals("q") || input.toLowerCase().equals("quit")) {
+			System.out.println("Good bye!");
+		} else {
+			try {
+				int option = Integer.parseInt(input);
+				if (option > 0 && option <= org.getFunds().size()) {
+					displayFund(option);
+				} else {
 					System.out.println("Invalid input. Please enter a valid fund number or 0 to create a new fund.");
+				}
+			} catch (NumberFormatException e) {
+				System.out.println("Invalid input. Please enter a valid fund number or 0 to create a new fund.");
+			}
+		}
+	}
+
+	private void login() {
+		while (true) {
+			System.out.println("Enter login: ");
+			String login = in.nextLine();
+			System.out.println("Enter password: ");
+			String password = in.nextLine();
+
+			try {
+				Organization org = dataManager.attemptLogin(login, password);
+
+				if (org == null) {
+					System.out.println("Login failed. Would you like to retry? (yes/no)");
+					String retry = in.nextLine();
+					if (!retry.equalsIgnoreCase("yes")) {
+						break;
+					}
+				} else {
+					this.org = org;
+					this.CurrUser = login;
+					break;
+				}
+			} catch (IllegalStateException e) {
+				System.out.println("Error in communicating with server. Would you like to retry? (yes/no)");
+				String retry = in.nextLine();
+				if (!retry.equalsIgnoreCase("yes")) {
+					break;
+				}
+			}
+		}
+	}
+
+	private void registerOrganization() {
+		while (true) {
+			try {
+				System.out.println("Enter login: ");
+				String login = in.nextLine();
+				System.out.println("Enter password: ");
+				String password = in.nextLine();
+				System.out.println("Enter organization name: ");
+				String name = in.nextLine();
+				System.out.println("Enter organization description: ");
+				String description = in.nextLine();
+
+				// Assuming there is a method in DataManager to create organization with login and password
+				Organization org = dataManager.createOrganization(name, description);
+				if (org != null) {
+					System.out.println("Organization successfully created. You can now log in.");
+					break;
+				}
+			} catch (IllegalStateException e) {
+				System.out.println("Error: " + e.getMessage() + ". Would you like to retry? (yes/no)");
+				String retry = in.nextLine();
+				if (!retry.equalsIgnoreCase("yes")) {
+					break;
+				}
+			} catch (IllegalArgumentException e) {
+				System.out.println("Error: " + e.getMessage() + ". Would you like to retry? (yes/no)");
+				String retry = in.nextLine();
+				if (!retry.equalsIgnoreCase("yes")) {
+					break;
 				}
 			}
 		}
@@ -190,37 +268,6 @@ public class UserInterface {
 		}
 	}
 
-	private void login() {
-		while (true) {
-			System.out.println("Enter login: ");
-			String login = in.nextLine();
-			System.out.println("Enter password: ");
-			String password = in.nextLine();
-
-			try {
-				Organization org = dataManager.attemptLogin(login, password);
-
-				if (org == null) {
-					System.out.println("Login failed. Would you like to retry? (yes/no)");
-					String retry = in.nextLine();
-					if (!retry.equalsIgnoreCase("yes")) {
-						break;
-					}
-				} else {
-					this.org = org;
-					this.CurrUser = login;
-					break;
-				}
-			} catch (IllegalStateException e) {
-				System.out.println("Error in communicating with server. Would you like to retry? (yes/no)");
-				String retry = in.nextLine();
-				if (!retry.equalsIgnoreCase("yes")) {
-					break;
-				}
-			}
-		}
-	}
-
 	public void changePassword() {
 		// prompt user for their current password
 		System.out.println("Enter your current password");
@@ -228,7 +275,7 @@ public class UserInterface {
 		// check if current password is entered correctly
 		boolean passwordSuccess = false;
 		try {
-			JSONObject json  = this.dataManager.makeLoginRequest(this.CurrUser, currentPassword);
+			JSONObject json = this.dataManager.makeLoginRequest(this.CurrUser, currentPassword);
 			String status = (String) json.get("status");
 			passwordSuccess = status.equals("success");
 		} catch (Exception e) {
@@ -285,36 +332,8 @@ public class UserInterface {
 	}
 
 	public static void main(String[] args) {
-		if (args.length == 0) {
-			System.out.println("No Arguments (login, password) passed into UserInterface main");
-			return;
-		}
-		if (args.length != 2) {
-			System.out.println("Incorrect # of arguments passed into UserInterface main");
-			return;
-		}
-
 		DataManager ds = new DataManager(new WebClient("localhost", 3001));
-
-		String login = args[0];
-		String password = args[1];
-
 		UserInterface ui = new UserInterface(ds, null);
-		ui.CurrUser = login;
-
-		try {
-			ui.org = ds.attemptLogin(login, password);
-
-			if (ui.org == null) {
-				System.out.println("Login failed.");
-				ui.login();
-			} else {
-				ui.start();
-			}
-		} catch (IllegalStateException e) {
-			System.out.println("Error in communicating with server");
-			ui.login();
-		}
+		ui.start();
 	}
 }
-

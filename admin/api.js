@@ -5,10 +5,21 @@ const {Organization} = require('./DbConfig.js');
 const {Fund} = require('./DbConfig.js');
 const {Contributor} = require('./DbConfig.js');
 const {Donation} = require('./DbConfig.js');
+const crypto = require('crypto');
 
 // set up BodyParser
 var bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({ extended: true }));
+
+// Hashing function
+function hashSaltedPassword(password) {
+	const SALT = "PublicSalt2357039275";
+	const combinedShaInput = SALT + password;
+	const hash = crypto.createHash("sha256");
+	hash.update(combinedShaInput);
+	const hashHex = hash.digest("hex");
+	return hashHex;
+}
 
 /*
 Return an org with login specified as req.query.login and password specified as 
@@ -407,6 +418,84 @@ app.use('/updateContributorPassword', (req, res) => {
 				res.json({ 'status': 'error', 'error': 'Contributor not found' });
 			}
 		}
+	});
+});
+
+/*
+Create a new contributor
+*/
+app.use('/createContributor', (req, res) => {
+	const { login, password, name, email, card_number, card_cvv, card_month, card_year, card_postcode } = req.body;
+
+	if (!login || !password || !name || !email || !card_number || !card_cvv || !card_month || !card_year || !card_postcode) {
+		return res.json({ "status": "error", "message": "All fields must be filled." });
+	}
+
+	Contributor.findOne({ login }, (err, existingContributor) => {
+		if (err) {
+			return res.json({ "status": "error", "data": err });
+		}
+		if (existingContributor) {
+			return res.json({ "status": "error", "message": "Login name already exists." });
+		}
+
+		const hashedPassword = hashSaltedPassword(password);
+
+		var contributor = new Contributor({
+			login,
+			password: hashedPassword,
+			name,
+			email,
+			creditCardNumber: card_number,
+			creditCardCVV: card_cvv,
+			creditCardExpiryMonth: card_month,
+			creditCardExpiryYear: card_year,
+			creditCardPostCode: card_postcode,
+			donations: []
+		});
+
+		contributor.save((err) => {
+			if (err) {
+				return res.json({ "status": "error", "data": err });
+			}
+			res.json({ "status": "success", "data": contributor });
+		});
+	});
+});
+
+// Endpoint to create a new organization
+app.post('/createOrg', (req, res) => {
+	const { login, password, name, description } = req.body;
+
+	if (!login || !password || !name || !description) {
+		return res.json({ "status": "error", "error": "All fields must be provided" });
+	}
+
+	const saltyPwdDigest = hashSaltedPassword(password);
+
+	Organization.findOne({ login: login }, (err, existingOrg) => {
+		if (err) {
+			return res.json({ "status": "error", "error": "Error checking existing login" });
+		}
+
+		if (existingOrg) {
+			return res.json({ "status": "error", "error": "Login name already exists" });
+		}
+
+		var org = new Organization({
+			login: login,
+			password: saltyPwdDigest,
+			name: name,
+			description: description,
+			funds: []
+		});
+
+		org.save((err, savedOrg) => {
+			if (err) {
+				return res.json({ "status": "error", "error": err.message });
+			}
+			res.json({ "status": "success", "data": savedOrg });
+		});
 	});
 });
 
